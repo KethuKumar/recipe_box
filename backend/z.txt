@@ -1,0 +1,176 @@
+# mongodb+srv://fortesting626622_db_user:OHTk65kj0xoByRkf@recipeboxcluster.zqr8idh.mongodb.net/
+
+
+
+# recipeBoxUser1
+# 8Ag4AtyWrjSHVRRz
+
+
+imagekit id z33vcmrye
+
+
+controller recipe
+
+import imagekit from "../config/imagekit.js";
+import recipeModel from "../models/recipe.model.js";
+
+export async function createRecipe(req, res) {
+  try {
+    let imageUrl = "";
+
+    const parsedIngredients = req.body.ingredients
+      ? JSON.parse(req.body.ingredients)
+      : [];
+
+    const parsedInstructions = req.body.instructions
+      ? JSON.parse(req.body.instructions)
+      : [];
+
+    const parsedTags = req.body.tags ? JSON.parse(req.body.tags) : [];
+    if (req.file) {
+      const result = await imagekit.upload({
+        file: req.file.buffer,
+        fileName: `${Date.now()}-${req.file.originalname}`,
+        folder: "recipebox",
+      });
+      imageUrl = result.url;
+    }
+
+    // const recipe = await recipeModel.create({
+    //   ...req.body,
+    //   image: imageUrl,
+    //   author: req.user._id,
+    // });
+
+    const recipe = await recipeModel.create({
+      title: req.body.title,
+      description: req.body.description,
+      cookingTime: req.body.cookingTime,
+      ingredients: parsedIngredients,
+      instructions: parsedInstructions,
+      tags: parsedTags, // ✅ NOT "tag"
+      image: imageUrl,
+      author: req.user._id,
+    });
+
+    return res.status(201).json({
+      message: "recipe created successfully",
+      recipe: recipe,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "internal server error",
+      error: error.message,
+    });
+  }
+}
+
+export async function getAllRecipes(req, res) {
+  try {
+    const recipes = await recipeModel.find();
+    return res.status(200).json({
+      message: "recipes fetched successfully",
+      recipes: recipes,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "internal server error",
+      error: error.message,
+    });
+  }
+}
+
+export async function getRecipes(req, res) {
+  try {
+    const { tag, time } = req.query;
+
+    let query = {};
+
+    // filter by tag
+    if (tag) {
+      query.tags = tag;
+      // this works because tag is an array
+    }
+
+    if (time) {
+      query.cookingTime = { $lte: Number(time) };
+    }
+
+    const recipes = await recipeModel.find(query);
+
+    return res.status(200).json({
+      success: true,
+      count: recipes.length,
+      recipes,
+    });
+    
+  } catch (error) {
+    return res.status(500).json({
+      message: "internal server error",
+      error: error.message,
+    });
+  }
+}
+
+
+============================================================
+
+export async function getAllRecipes(req, res) {
+  try {
+    const recipes = await recipeModel.find();
+    return res.status(200).json({
+      message: "recipes fetched successfully",
+      recipes: recipes,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "internal server error",
+      error: error.message,
+    });
+  }
+}
+
+export async function getRecipes(req, res) {
+  try {
+    const { tag, time, include, exclude } = req.query;
+
+    let query = {};
+
+    // filter by tag
+    if (tag) {
+      query.tags = tag;
+      // this works because tag is an array
+    }
+
+    if (time) {
+      query.cookingTime = { $lte: Number(time) };
+    }
+
+    if(include){
+        const includeArray = include.split(",").map(i => i.toLowerCase());
+        query["ingredients.name"] = {$all: includeArray}
+    }
+
+    if(exclude){
+        const excludeArray = exclude.split(",")
+        query["ingredients.name"] = {
+            ...query["ingredients.name"],
+            $nin:excludeArray
+        }
+    }
+
+    const recipes = await recipeModel.find(query);
+
+    return res.status(200).json({
+      success: true,
+      count: recipes.length,
+      recipes,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "internal server error",
+      error: error.message,
+    });
+  }
+}
