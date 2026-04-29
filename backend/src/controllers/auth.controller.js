@@ -67,8 +67,8 @@ export async function login(req, res) {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // ✅ required on Render
-      sameSite: "None", // 🔥 MUST
+      secure: true,
+      sameSite: "None",
     });
 
     return res.status(200).json({

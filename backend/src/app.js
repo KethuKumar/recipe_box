@@ -15,7 +15,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(
   cors({
-    origin: "https://recipe-box-olive.vercel.app/",
+    origin: "https://recipe-box-olive.vercel.app",
     credentials: true,
   }),
 );
@@ -30,6 +30,6 @@ app.use("/api/auth", authRuouter);
 app.use("/api/recipes", recipeRouter);
 app.use("/api/users", userRouter);
 app.use("/api/cookbooks", cookbookRoutes);
-app.use("api/meal-plan", mealPlanRoutes);
+app.use("/api/meal-plan", mealPlanRoutes);
 
 export default app;
