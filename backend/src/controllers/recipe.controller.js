@@ -55,10 +55,11 @@ export async function createRecipe(req, res) {
 
 export async function getAllRecipes(req, res) {
   try {
-    const recipes = await recipeModel.find();
+    const recipes = await recipeModel.find().populate("author", "username"); // ✅ FIX
+
     return res.status(200).json({
       message: "recipes fetched successfully",
-      recipes: recipes,
+      recipes,
     });
   } catch (error) {
     return res.status(500).json({
@@ -133,41 +134,71 @@ export async function getAllRecipes(req, res) {
 //   }
 // }
 
+// export const getRecipes = async (req, res) => {
+//   try {
+//     const { search, time, tag } = req.query;
+
+//     let query = {};
+
+//     // 🔍 NAME SEARCH (partial match)
+//     if (search) {
+//       query.title = {
+//         $regex: search,
+//         $options: "i",
+//       };
+//     }
+
+//     // ⏱ TIME FILTER
+//     if (time) {
+//       query.cookingTime = {
+//         $lte: Number(time),
+//       };
+//     }
+
+//     // 🏷 TAG FILTER (case insensitive)
+//     if (tag) {
+//       query.tags = {
+//         $elemMatch: {
+//           $regex: tag,
+//           $options: "i",
+//         },
+//       };
+//     }
+
+//     const recipes = await recipeModel.find(query);
+
+//     res.json({ recipes });
+
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 export const getRecipes = async (req, res) => {
   try {
     const { search, time, tag } = req.query;
 
     let query = {};
 
-    // 🔍 NAME SEARCH (partial match)
     if (search) {
-      query.title = {
-        $regex: search,
-        $options: "i",
-      };
+      query.title = { $regex: search, $options: "i" };
     }
 
-    // ⏱ TIME FILTER
     if (time) {
-      query.cookingTime = {
-        $lte: Number(time),
-      };
+      query.cookingTime = { $lte: Number(time) };
     }
 
-    // 🏷 TAG FILTER (case insensitive)
     if (tag) {
       query.tags = {
-        $elemMatch: {
-          $regex: tag,
-          $options: "i",
-        },
+        $elemMatch: { $regex: tag, $options: "i" },
       };
     }
 
-    const recipes = await recipeModel.find(query);
+    const recipes = await recipeModel
+      .find(query)
+      .populate("author", "username"); // ✅ FIX
 
     res.json({ recipes });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -176,19 +207,19 @@ export const getRecipes = async (req, res) => {
 // feed api
 export async function getFeed(req, res) {
   try {
-    const user = req.user;
+    const user = await userModel.findById(req.user._id);
 
     const recipes = await recipeModel
       .find({
-        author: {
-          $in: user.following,
-        },
+        author: { $in: user.following },
       })
+      .populate("author", "username") // ✅ IMPORTANT
       .sort({ createdAt: -1 });
 
     return res.json({
       success: true,
-      count: recipes.length.recipes,
+      count: recipes.length,
+      recipes,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -413,5 +444,56 @@ export const deleteRecipe = async (req, res) => {
     res.status(500).json({
       message: error.message,
     });
+  }
+};
+
+
+// export const getRecipeById = async (req, res) => {
+//   try {
+//     const id = req.params.id;
+
+//     const recipe = await recipeModel
+//       .findById(id)
+//       .populate("author", "username email") // 👈 important
+//       .populate("comments.user", "username")
+//       .populate("ratings.user", "username");
+
+//     // ❌ not found
+//     if (!recipe) {
+//       return res.status(404).json({
+//         message: "Recipe not found",
+//       });
+//     }
+
+//     // ✅ success
+//     return res.status(200).json({
+//       success: true,
+//       recipe,
+//     });
+
+//   } catch (error) {
+//     return res.status(500).json({
+//       message: "Internal server error",
+//       error: error.message,
+//     });
+//   }
+// };
+
+export const getMyRecipes = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const recipes = await recipeModel
+      .find({ author: userId })
+      .populate("author", "username")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      recipes,
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

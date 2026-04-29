@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema(
       required: [true, "password is must required"],
     },
     avatar: {
-      String,
+      type: String,
     },
     followers: [
       {
