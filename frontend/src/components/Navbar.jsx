@@ -57,7 +57,6 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-orange-100">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-
         {/* LOGO */}
         {/* <h1
           onClick={() => navigate("/")}
@@ -82,40 +81,65 @@ const Navbar = () => {
 
         {/* DESKTOP MENU */}
         <div className="hidden md:flex items-center gap-3">
-
-          <Link className="px-4 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition" to="/">
+          <Link
+            className="px-4 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
+            to="/"
+          >
             Home
           </Link>
 
-          <button
+          {/* <button
             onClick={() => navigate("/create")}
             className="px-4 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm"
           >
             Create
-          </button>
+          </button> */}
 
           {!user ? (
             <>
-              <Link className="px-4 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition" to="/login">
+              <Link
+                className="px-4 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
+                to="/login"
+              >
                 Login
               </Link>
-              <Link className="px-4 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition" to="/register">
+              <Link
+                className="px-4 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
+                to="/register"
+              >
                 Register
               </Link>
             </>
           ) : (
             <>
-             
+              {/* <Link
+                className="px-4 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
+                to="/meal-planner"
+              >
+                Planner
+              </Link> */}
+
+              <Link
+                className="px-4 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
+                to="/feed"
+              >
+                Feed
+              </Link>
+              <Link
+                className="px-4 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
+                to="/profile"
+              >
+                Profile
+              </Link>
+
               <button
                 onClick={handleLogout}
                 className="px-4 py-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition"
               >
                 Logout
               </button>
-               <span className="text-gray-600 text-sm">
-                👋 {user.username}
-              </span>
 
+              <span className="text-gray-600 text-sm">👋 {user.username}</span>
             </>
           )}
         </div>
@@ -131,45 +155,107 @@ const Navbar = () => {
 
       {/* MOBILE MENU */}
       {menuOpen && (
-        <div className="md:hidden px-4 pb-4 space-y-3 bg-white/90 backdrop-blur-md border-t">
+        <div
+          className={`md:hidden fixed top-0 left-0 w-full h-screen bg-white/95 backdrop-blur-lg z-40 transition-transform duration-300 ${
+            menuOpen ? "translate-y-0" : "-translate-y-full"
+          }`}
+        >
+          <div className="flex flex-col p-6 gap-6">
+            {/* TOP BAR */}
+            <div className="flex justify-between items-center">
+              <img src={logo} className="h-10" />
 
-          {/* SEARCH */}
-          <div className="flex items-center bg-white border rounded-full px-3 py-2">
-            <FiSearch className="text-gray-400 mr-2" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="outline-none w-full text-sm"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
-          <Link to="/" className="block py-2">Home</Link>
-
-          <button
-            onClick={() => navigate("/create")}
-            className="w-full py-2 bg-orange-500 text-white rounded"
-          >
-            Create
-          </button>
-
-          {!user ? (
-            <>
-              <Link to="/login" className="block py-2">Login</Link>
-              <Link to="/register" className="block py-2">Register</Link>
-            </>
-          ) : (
-            <>
-              <p className="text-gray-600">👋 {user.username}</p>
               <button
-                onClick={handleLogout}
-                className="w-full py-2 bg-red-500 text-white rounded"
+                onClick={() => setMenuOpen(false)}
+                className="text-2xl text-orange-500"
               >
-                Logout
+                <FiX />
               </button>
-            </>
-          )}
+            </div>
+
+            {/* SEARCH */}
+            <div className="flex items-center bg-white border rounded-full px-4 py-2 shadow-sm">
+              <FiSearch className="text-gray-400 mr-2" />
+              <input
+                type="text"
+                placeholder="Search recipes..."
+                className="outline-none w-full text-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            {/* NAV LINKS */}
+            <div className="flex flex-col gap-3 text-lg">
+              <Link
+                to="/"
+                onClick={() => setMenuOpen(false)}
+                className="py-3 px-4 rounded-xl bg-orange-500 text-white text-center"
+              >
+                Home
+              </Link>
+
+              <button
+                onClick={() => {
+                  navigate("/create");
+                  setMenuOpen(false);
+                }}
+                className="py-3 px-4 rounded-xl bg-orange-500 text-white"
+              >
+                Create
+              </button>
+
+              {!user ? (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="py-3 px-4 rounded-xl bg-orange-500 text-white text-center"
+                  >
+                    Login
+                  </Link>
+
+                  <Link
+                    to="/register"
+                    onClick={() => setMenuOpen(false)}
+                    className="py-3 px-4 rounded-xl bg-orange-500 text-white text-center"
+                  >
+                    Register
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/feed"
+                    onClick={() => setMenuOpen(false)}
+                    className="py-3 px-4 rounded-xl bg-orange-500 text-white text-center"
+                  >
+                    Feed
+                  </Link>
+
+                  <Link
+                    to="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="py-3 px-4 rounded-xl bg-orange-500 text-white text-center"
+                  >
+                    Profile
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMenuOpen(false);
+                    }}
+                    className="py-3 px-4 rounded-xl bg-red-500 text-white"
+                  >
+                    Logout
+                  </button>
+
+                  <p className="text-gray-600 px-2">👋 {user.username}</p>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </nav>

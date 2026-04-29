@@ -15,7 +15,7 @@ const Recipes = () => {
   const fetchRecipes = async () => {
     try {
       const query = new URLSearchParams(filters).toString();
-      const res = await API.get(`/recipes?${query}`);
+      const res = await API.get(`/api/recipes?${query}`);
       setRecipes(res.data.recipes);
     } catch (error) {
       console.log(error);
@@ -27,15 +27,15 @@ const Recipes = () => {
   }, []);
 
   const handleRate = async (id, value) => {
-    await API.post(`/recipes/${id}/rate`, { value });
+    await API.post(`/api/recipes/${id}/rate`, { value });
   };
 
   const handleComment = async (id, text) => {
-    await API.post(`/recipes/${id}/comment`, { text });
+    await API.post(`/api/recipes/${id}/comment`, { text });
   };
 
   const handleFollow = async (userId) => {
-    await API.post(`/users/follow/${userId}`);
+    await API.post(`/api/users/follow/${userId}`);
   };
 
   return (

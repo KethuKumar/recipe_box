@@ -9,11 +9,47 @@ const RecipeDetails = () => {
   const [recipe, setRecipe] = useState(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cookbooks, setCookbooks] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [newCookbook, setNewCookbook] = useState("");
 
   const fetchRecipe = async () => {
     try {
-      const res = await API.get(`/recipes/${id}`);
+      const res = await API.get(`/api/recipes/${id}`);
       setRecipe(res.data.recipe);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const fetchCookbooks = async () => {
+    const res = await API.get("/api/cookbooks");
+    setCookbooks(res.data.cookbooks);
+  };
+
+  const saveToCookbook = async (cookbookId) => {
+    try {
+      await API.post(`/api/cookbooks/${cookbookId}/add`, {
+        recipeId: recipe._id,
+      });
+
+      setShowModal(false);
+      alert("Saved!");
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const createCookbook = async () => {
+    if (!newCookbook.trim()) return;
+
+    try {
+      await API.post("/api/cookbooks", {
+        name: newCookbook,
+      });
+
+      setNewCookbook("");
+      fetchCookbooks(); // refresh list
     } catch (err) {
       console.log(err);
     }
@@ -89,6 +125,55 @@ const RecipeDetails = () => {
         </div>
       </div>
 
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+          <div className="bg-white w-96 rounded-2xl shadow-xl p-6 animate-scaleIn">
+            <h3 className="text-lg font-semibold mb-4">Save to Cookbook 📚</h3>
+
+            {/* CREATE NEW */}
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                placeholder="New cookbook..."
+                className="flex-1 border rounded-full px-4 py-2 text-sm"
+                value={newCookbook}
+                onChange={(e) => setNewCookbook(e.target.value)}
+              />
+
+              <button
+                onClick={createCookbook}
+                className="bg-orange-500 text-white px-4 rounded-full text-sm"
+              >
+                Add
+              </button>
+            </div>
+
+            {/* LIST */}
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {cookbooks.map((cb) => (
+                <div
+                  key={cb._id}
+                  onClick={() => saveToCookbook(cb._id)}
+                  className="flex justify-between items-center p-3 border rounded-xl hover:bg-orange-50 cursor-pointer transition"
+                >
+                  <span>{cb.name}</span>
+                  <span className="text-xs text-gray-400">
+                    {cb.recipes.length}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setShowModal(false)}
+              className="mt-4 text-sm text-gray-500"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* MAIN CONTENT */}
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-10">
         {/* DESCRIPTION */}
@@ -98,6 +183,16 @@ const RecipeDetails = () => {
           </h2>
           <p className="text-gray-600">{recipe.description}</p>
         </div>
+
+        <button
+          onClick={() => {
+            fetchCookbooks();
+            setShowModal(true);
+          }}
+          className="bg-orange-500 text-white px-4 py-2 rounded-full"
+        >
+          Save 🍳
+        </button>
 
         {/* RATE */}
         <div>

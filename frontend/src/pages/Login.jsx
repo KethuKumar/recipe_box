@@ -18,7 +18,8 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      const redirectPath = location.state?.from || "/create";
+      // const redirectPath = location.state?.from || "/create";
+      const redirectPath = location.state?.from || "/feed";
       navigate(redirectPath);
     }
   }, [user]);

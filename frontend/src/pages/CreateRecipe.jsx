@@ -47,7 +47,7 @@ const CreateRecipe = () => {
       formData.append("tags", JSON.stringify(tagsArray));
       formData.append("image", image);
 
-      await API.post("/recipes", formData);
+      await API.post("/api/recipes", formData);
 
       alert("✅ Recipe created!");
 

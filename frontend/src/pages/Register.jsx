@@ -11,13 +11,34 @@ const Register = () => {
     password: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await dispatch(registerUser(form));
-    navigate("/login");
+
+    if (!form.username || !form.email || !form.password) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // ✅ wait for success
+      await dispatch(registerUser(form)).unwrap();
+
+      // ✅ navigate only if success
+      navigate("/login");
+
+    } catch (err) {
+      console.log(err);
+      alert(err || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,6 +65,7 @@ const Register = () => {
             <input
               type="text"
               placeholder="Username"
+              value={form.username}
               className="w-full outline-none bg-transparent"
               onChange={(e) =>
                 setForm({ ...form, username: e.target.value })
@@ -57,6 +79,7 @@ const Register = () => {
             <input
               type="email"
               placeholder="Email"
+              value={form.email}
               className="w-full outline-none bg-transparent"
               onChange={(e) =>
                 setForm({ ...form, email: e.target.value })
@@ -70,6 +93,7 @@ const Register = () => {
             <input
               type="password"
               placeholder="Password"
+              value={form.password}
               className="w-full outline-none bg-transparent"
               onChange={(e) =>
                 setForm({ ...form, password: e.target.value })
@@ -78,8 +102,11 @@ const Register = () => {
           </div>
 
           {/* BUTTON */}
-          <button className="w-full bg-linear-to-r from-orange-500 to-orange-600 text-white py-2.5 rounded-full font-semibold hover:scale-[1.02] active:scale-95 transition shadow-md">
-            Register
+          <button
+            disabled={loading}
+            className="w-full bg-linear-to-r from-orange-500 to-orange-600 text-white py-2.5 rounded-full font-semibold hover:scale-[1.02] active:scale-95 transition shadow-md disabled:opacity-70"
+          >
+            {loading ? "Creating..." : "Register"}
           </button>
         </form>
 

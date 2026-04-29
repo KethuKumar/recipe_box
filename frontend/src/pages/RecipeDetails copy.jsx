@@ -12,7 +12,7 @@ const RecipeDetails = () => {
   // 🔥 FETCH
   const fetchRecipe = async () => {
     try {
-      const res = await API.get(`/recipes/${id}`);
+      const res = await API.get(`/api/recipes/${id}`);
       setRecipe(res.data.recipe);
     } catch (err) {
       console.log(err);
