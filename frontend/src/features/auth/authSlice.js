@@ -6,7 +6,7 @@ export const registerUser = createAsyncThunk(
   "auth/register",
   async (formData, thunkAPI) => {
     try {
-      const res = await API.post("/auth/register", formData);
+      const res = await API.post("/api/auth/register", formData);
       return res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
@@ -18,7 +18,7 @@ export const loginUser = createAsyncThunk(
   "auth/login",
   async (formData, thunkAPI) => {
     try {
-      const res = await API.post("/auth/login", formData);
+      const res = await API.post("/api/auth/login", formData);
       return res.data; // 🔥 return full data
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
