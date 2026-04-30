@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import cookieParser from "cookie-parser";
+// import cookieParser from "cookie-parser";
 import authRuouter from "./routes/auth.routes.js";
 import recipeRouter from "./routes/recipe.routes.js";
 import userRouter from "./routes/user.routes.js";
@@ -19,7 +19,7 @@ app.use(
     credentials: true,
   }),
 );
-app.use(cookieParser());
+// app.use(cookieParser());
 
 // routes
 app.get("/", (req, res) => {

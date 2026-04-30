@@ -6,7 +6,7 @@ export const registerUser = createAsyncThunk(
   "auth/register",
   async (formData, thunkAPI) => {
     try {
-      const res = await API.post("/api/auth/register", formData);
+      const res = await API.post("/auth/register", formData);
       return res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
@@ -18,8 +18,8 @@ export const loginUser = createAsyncThunk(
   "auth/login",
   async (formData, thunkAPI) => {
     try {
-      const res = await API.post("/api/auth/login", formData);
-      return res.data.user;
+      const res = await API.post("/auth/login", formData);
+      return res.data; // 🔥 return full data
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
     }
@@ -37,7 +37,7 @@ export const logoutUser = createAsyncThunk(
 );
 
 const initialState = {
-  user: null,
+  user: JSON.parse(localStorage.getItem("user")) || null,
   loading: false,
   error: null,
 };
@@ -48,24 +48,41 @@ const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+
+      // LOGIN
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
+
+        const { token, user } = action.payload;
+
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user)); // ✅ add this
+
+        state.user = user;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-      // Register
+
+      // REGISTER
       .addCase(registerUser.fulfilled, (state, action) => {
-        console.log("you logged out");
-        state.user = action.payload;
+        const { token, user } = action.payload;
+
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+
+        state.user = user;
       })
-      // logout
+
+      // LOGOUT
       .addCase(logoutUser.fulfilled, (state) => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user"); // ✅ add this
+
         state.user = null;
       });
   },

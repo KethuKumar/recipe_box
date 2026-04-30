@@ -40,7 +40,7 @@ const Footer = () => {
 
         {/* BOTTOM */}
         <p className="text-center text-sm text-white/90">
-          © 2026 RecipeBox — Built with ❤️
+          © 2026 RecipeBox — KK
         </p>
       </div>
     </footer>

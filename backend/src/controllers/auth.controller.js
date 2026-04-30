@@ -8,77 +8,65 @@ import config from "../config/config.js";
 export async function register(req, res) {
   try {
     const { username, email, password } = req.body;
-    const userExist = await userModel.findOne({ email });
 
-    if (userExist) {
-      return res.status(400).json({
-        message: "user already exist",
-      });
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashPassword = await bcrypt.hash(password, 10);
-
-    const user = await userModel.create({
+    const user = await User.create({
       username,
       email,
-      password: hashPassword,
+      password,
     });
 
-    const response = {
-      user: user._id,
-      user: user.username,
-      email: user.email,
-    };
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-    return res.status(201).json({
-      message: "user created successfully",
-      user: response,
+    res.status(201).json({
+      token,
+      user,
     });
-  } catch (error) {
-    return res.status(500).json({
-      message: "inter server error",
-      error: error.message,
-    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 }
 
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
-    const user = await userModel.findOne({ email });
 
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({
-        message: "user not found",
-      });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-
+    const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({
-        message: "invalid credentials",
-      });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: user._id }, config.JWT_SECRET, {
-      expiresIn: "7d",
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // ✅ send token instead of cookie
+    res.json({
+      token,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+      },
     });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-    });
-
-    return res.status(200).json({
-      message: "login sucessful",
-      user: user,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "inter server error",
-      error: error.message,
-    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 }

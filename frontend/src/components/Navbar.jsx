@@ -65,7 +65,12 @@ const Navbar = () => {
           🍗 RecipeBox
         </h1> */}
 
+        <Link></Link>
+
+        <Link to="/">
         <img src={logo} alt="logo" className="h-17" />
+              </Link>
+
 
         {/* 🔍 SEARCH (Desktop) */}
         <div className="hidden md:flex items-center bg-white shadow-sm border rounded-full px-3 py-1 w-80 focus-within:ring-2 focus-within:ring-orange-400 transition">
@@ -85,7 +90,7 @@ const Navbar = () => {
             className="px-4 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
             to="/"
           >
-            Home
+            Explore
           </Link>
 
           {/* <button
