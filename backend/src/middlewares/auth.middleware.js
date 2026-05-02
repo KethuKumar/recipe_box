@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import userModel from "../models/user.model.js";
 import config from "../config/config.js";
 
 const protect = async (req, res, next) => {
@@ -14,7 +13,10 @@ const protect = async (req, res, next) => {
 
     const decoded = jwt.verify(token, config.JWT_SECRET);
 
-    req.user = decoded;
+    req.user = {
+      id: decoded.id,
+      _id: decoded.id,
+    };
 
     next();
   } catch (err) {

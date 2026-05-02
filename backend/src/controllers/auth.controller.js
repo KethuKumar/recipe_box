@@ -1,7 +1,6 @@
 import userModel from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import config from "../config/config.js";
 
 // export const register = async(req,res)
 
@@ -9,12 +8,12 @@ export async function register(req, res) {
   try {
     const { username, email, password } = req.body;
 
-    const userExists = await User.findOne({ email });
+    const userExists = await userModel.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const user = await User.create({
+    const user = await userModel.create({
       username,
       email,
       password,
@@ -28,7 +27,13 @@ export async function register(req, res) {
 
     res.status(201).json({
       token,
-      user,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        followers: user.followers,
+        following: user.following,
+      },
     });
 
   } catch (err) {
@@ -40,7 +45,7 @@ export async function login(req, res) {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await userModel.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -63,6 +68,8 @@ export async function login(req, res) {
         _id: user._id,
         username: user.username,
         email: user.email,
+        followers: user.followers,
+        following: user.following,
       },
     });
 

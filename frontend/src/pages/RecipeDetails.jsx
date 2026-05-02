@@ -67,7 +67,7 @@ const RecipeDetails = () => {
 
   const handleRate = async (value) => {
     try {
-      await API.post(`/recipes/${id}/rate`, { value });
+      await API.post(`/api/recipes/${id}/rate`, { value });
       fetchRecipe();
     } catch (err) {
       console.log(err);
@@ -79,7 +79,7 @@ const RecipeDetails = () => {
 
     setLoading(true);
     try {
-      await API.post(`/recipes/${id}/comment`, { text: comment });
+      await API.post(`/api/recipes/${id}/comment`, { text: comment });
       setComment("");
       fetchRecipe();
     } catch (err) {

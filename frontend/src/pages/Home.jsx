@@ -3,7 +3,7 @@ import API from "../api/axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { FiClock, FiStar } from "react-icons/fi";
-import { loginUser } from "../features/auth/authSlice"; // reuse to update user
+import { setUser } from "../features/auth/authSlice";
 
 const Home = () => {
   const [recipes, setRecipes] = useState([]);
@@ -51,7 +51,7 @@ const Home = () => {
           following: user.following.filter((id) => id !== authorId),
         };
 
-        dispatch({ type: "auth/login/fulfilled", payload: updatedUser });
+        dispatch(setUser(updatedUser));
       } else {
         await API.post(`/api/users/follow/${authorId}`);
 
@@ -60,7 +60,7 @@ const Home = () => {
           following: [...(user.following || []), authorId],
         };
 
-        dispatch({ type: "auth/login/fulfilled", payload: updatedUser });
+        dispatch(setUser(updatedUser));
       }
     } catch (err) {
       console.log(err);

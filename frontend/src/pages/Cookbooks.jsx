@@ -9,7 +9,7 @@ const Cookbooks = () => {
 
   const fetchCookbooks = async () => {
     try {
-      const res = await API.get("/cookbooks");
+      const res = await API.get("/api/cookbooks");
       setCookbooks(res.data.cookbooks);
     } catch (err) {
       console.log(err);
@@ -24,7 +24,7 @@ const Cookbooks = () => {
     if (!name.trim()) return;
 
     try {
-      await API.post("/cookbooks", { name });
+      await API.post("/api/cookbooks", { name });
       setName("");
       fetchCookbooks();
     } catch (err) {
