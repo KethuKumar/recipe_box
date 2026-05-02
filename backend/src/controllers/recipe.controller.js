@@ -2,6 +2,12 @@ import imagekit from "../config/imagekit.js";
 import recipeModel from "../models/recipe.model.js";
 import userModel from "../models/user.model.js";
 
+const populateRecipeDetails = (query) =>
+  query
+    .populate("author", "username email")
+    .populate("comments.user", "username")
+    .populate("ratings.user", "username");
+
 export async function createRecipe(req, res) {
   try {
     let imageUrl = "";
@@ -259,12 +265,16 @@ export async function getFeed(req, res) {
 
 export const rateRecipe = async (req, res) => {
   try {
-    const { value } = req.body;
+    const value = Number(req.body.value);
     const recipeId = req.params.id;
 
     // 🔐 CHECK USER
     if (!req.user) {
       return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!Number.isInteger(value) || value < 1 || value > 5) {
+      return res.status(400).json({ message: "Rating must be between 1 and 5" });
     }
 
     const userId = req.user._id;
@@ -277,13 +287,11 @@ export const rateRecipe = async (req, res) => {
     }
 
     // ❗ ENSURE ratings exists
-    if (!recipe.ratings) {
-      recipe.ratings = [];
-    }
+    recipe.ratings = recipe.ratings || [];
 
     // check existing rating
     const existing = recipe.ratings.find(
-      (r) => r.user.toString() === userId.toString(),
+      (r) => r.user && r.user.toString() === userId.toString(),
     );
 
     if (existing) {
@@ -301,23 +309,34 @@ export const rateRecipe = async (req, res) => {
 
     await recipe.save();
 
+    const updatedRecipe = await populateRecipeDetails(recipeModel.findById(recipeId));
+
     res.json({
       message: "Rating saved",
       averageRating: avg,
+      recipe: updatedRecipe,
     });
   } catch (error) {
-    console.log("RATE ERROR:", error); // 👈 IMPORTANT
     res.status(500).json({ message: error.message });
   }
 };
 
 export const addComment = async (req, res) => {
   try {
-    const { text } = req.body;
+    const text = req.body.text?.trim();
     const recipeId = req.params.id;
+
+    if (!text) {
+      return res.status(400).json({ message: "Comment cannot be empty" });
+    }
 
     const recipe = await recipeModel.findById(recipeId);
 
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    recipe.comments = recipe.comments || [];
     recipe.comments.push({
       user: req.user._id,
       text,
@@ -325,9 +344,12 @@ export const addComment = async (req, res) => {
 
     await recipe.save();
 
+    const updatedRecipe = await populateRecipeDetails(recipeModel.findById(recipeId));
+
     res.json({
       message: "Comment added",
-      comments: recipe.comments,
+      comments: updatedRecipe.comments,
+      recipe: updatedRecipe,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -336,9 +358,7 @@ export const addComment = async (req, res) => {
 
 export const getSingleRecipe = async (req, res) => {
   try {
-    const recipe = await recipeModel
-      .findById(req.params.id)
-      .populate("author", "username email");
+    const recipe = await populateRecipeDetails(recipeModel.findById(req.params.id));
 
     if (!recipe) {
       return res.status(404).json({

@@ -1,14 +1,19 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import API from "../api/axios";
 import { FiClock, FiStar, FiSend } from "react-icons/fi";
 
 const RecipeDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
 
   const [recipe, setRecipe] = useState(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [ratingLoading, setRatingLoading] = useState(false);
+  const [error, setError] = useState("");
   const [cookbooks, setCookbooks] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newCookbook, setNewCookbook] = useState("");
@@ -60,32 +65,61 @@ const RecipeDetails = () => {
   }, [id]);
 
   const getAverageRating = () => {
-    if (!recipe?.ratings?.length) return 0;
-    const total = recipe.ratings.reduce((acc, r) => acc + r.value, 0);
-    return (total / recipe.ratings.length).toFixed(1);
+    return Number(recipe?.averageRating || 0).toFixed(1);
+  };
+
+  const getUserRating = () => {
+    if (!user || !recipe?.ratings?.length) return 0;
+
+    return (
+      recipe.ratings.find((rating) => {
+        const ratingUserId =
+          typeof rating.user === "string" ? rating.user : rating.user?._id;
+
+        return ratingUserId === user._id;
+      })?.value || 0
+    );
   };
 
   const handleRate = async (value) => {
+    if (!user) {
+      navigate("/login", { state: { from: `/recipes/${id}` } });
+      return;
+    }
+
+    setError("");
+    setRatingLoading(true);
     try {
-      await API.post(`/api/recipes/${id}/rate`, { value });
-      fetchRecipe();
+      const res = await API.post(`/api/recipes/${id}/rate`, { value });
+      setRecipe(res.data.recipe);
     } catch (err) {
       console.log(err);
+      setError(err.response?.data?.message || "Could not save rating");
+    } finally {
+      setRatingLoading(false);
     }
   };
 
   const handleComment = async () => {
     if (!comment.trim()) return;
 
+    if (!user) {
+      navigate("/login", { state: { from: `/recipes/${id}` } });
+      return;
+    }
+
+    setError("");
     setLoading(true);
     try {
-      await API.post(`/api/recipes/${id}/comment`, { text: comment });
+      const res = await API.post(`/api/recipes/${id}/comment`, { text: comment });
       setComment("");
-      fetchRecipe();
+      setRecipe(res.data.recipe);
     } catch (err) {
       console.log(err);
+      setError(err.response?.data?.message || "Could not post comment");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (!recipe)
@@ -194,6 +228,12 @@ const RecipeDetails = () => {
           Save 🍳
         </button>
 
+        {error && (
+          <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-4 py-2">
+            {error}
+          </p>
+        )}
+
         {/* RATE */}
         <div>
           <h3 className="mb-3 text-lg font-semibold text-gray-800">
@@ -205,10 +245,17 @@ const RecipeDetails = () => {
               <FiStar
                 key={num}
                 onClick={() => handleRate(num)}
-                className="cursor-pointer text-gray-300 hover:text-orange-400 transition hover:scale-110"
+                className={`cursor-pointer transition hover:scale-110 ${
+                  num <= getUserRating()
+                    ? "fill-orange-400 text-orange-400"
+                    : "text-gray-300 hover:text-orange-400"
+                } ${ratingLoading ? "pointer-events-none opacity-60" : ""}`}
               />
             ))}
           </div>
+          <p className="mt-2 text-sm text-gray-500">
+            Average: {getAverageRating()} from {recipe.ratings?.length || 0} ratings
+          </p>
         </div>
 
         {/* INGREDIENTS */}
@@ -284,7 +331,10 @@ const RecipeDetails = () => {
                   key={c._id}
                   className="bg-white border border-gray-200 p-3 rounded-lg shadow-sm"
                 >
-                  💬 {c.text}
+                  <p className="text-sm font-medium text-gray-700">
+                    {c.user?.username || "Someone"}
+                  </p>
+                  <p className="text-gray-600">{c.text}</p>
                 </div>
               ))}
             </div>
